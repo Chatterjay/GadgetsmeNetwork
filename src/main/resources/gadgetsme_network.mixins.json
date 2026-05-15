@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.chatterjay.gadgetsme_network.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "gadgetsme_network.refmap.json",
+  "mixins": [
+    "ScreenInvoker",
+    "CraftAmountMenuMixin",
+    "CraftConfirmMenuMixin",
+    "CraftMenuCloseMixin"
+  ],
+  "client": [
+    "MaterialListGUIAccessor",
+    "MaterialListGUIMixin",
+    "MaterialListEntryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
