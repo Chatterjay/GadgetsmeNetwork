@@ -115,6 +115,9 @@ gradle-app.setting
 run/
 runs/
 
+# Local dependency jars (use Modrinth Maven instead)
+libs/
+
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
 
