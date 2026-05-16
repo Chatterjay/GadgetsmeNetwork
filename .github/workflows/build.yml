@@ -12,14 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: gadgetsme_network
-
-      - name: Checkout Building Gadgets 2
-        uses: actions/checkout@v4
-        with:
-          repository: Direwolf20-MC/BuildingGadgets2
-          path: BuildingGadgets2
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -27,38 +19,20 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: Setup Gradle (BG2)
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
 
-      - name: Build Building Gadgets 2
-        working-directory: BuildingGadgets2
-        run: |
-          chmod +x gradlew
-          ./gradlew build -x test
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
-      - name: Copy BG2 jar to libs
-        run: |
-          mkdir -p gadgetsme_network/libs
-          cp BuildingGadgets2/build/libs/buildinggadgets2-*.jar gadgetsme_network/libs/
-
-      - name: Setup Gradle (GadgetsME Network)
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
-
-      - name: Build GadgetsME Network
-        working-directory: gadgetsme_network
-        run: |
-          chmod +x gradlew
-          ./gradlew build
+      - name: Build
+        run: ./gradlew build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: gadgetsme_network
-          path: gadgetsme_network/build/libs/gadgetsme_network-*.jar
+          path: build/libs/gadgetsme_network-*.jar
 
   release:
     if: startsWith(github.ref_name, 'v')
@@ -67,10 +41,22 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          name: gadgetsme_network
+          java-version: 21
+          distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build Release
+        run: ./gradlew build -Pmod_version=${GITHUB_REF_NAME#v}
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -78,5 +64,5 @@ jobs:
           name: GadgetsME Network ${{ github.ref_name }}
           body: |
             See [CHANGELOG](CHANGELOG.md) for details.
-          files: gadgetsme_network-*.jar
+          files: build/libs/gadgetsme_network-*.jar
           generate_release_notes: true
