@@ -34,8 +34,6 @@ import org.chatterjay.gadgetsme_network.network.AECountRequestPayload;
 import org.chatterjay.gadgetsme_network.network.AECountResponsePayload;
 import org.chatterjay.gadgetsme_network.network.OpenCraftAmountListPayload;
 import org.chatterjay.gadgetsme_network.network.OpenCraftAmountPayload;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.neoforged.fml.ModList;
 import top.theillusivec4.curios.api.CuriosCapability;
@@ -44,9 +42,6 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 public class AEHelper {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AEHelper.class);
-
-    // Per-player craft queue for sequential auto-popup
     private static final Map<UUID, List<ItemStack>> craftQueue = new HashMap<>();
 
     // Flags to distinguish menu lifecycle transitions
