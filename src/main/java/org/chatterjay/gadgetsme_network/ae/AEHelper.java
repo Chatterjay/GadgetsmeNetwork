@@ -36,8 +36,7 @@ import org.chatterjay.gadgetsme_network.network.OpenCraftAmountListPayload;
 import org.chatterjay.gadgetsme_network.network.OpenCraftAmountPayload;
 
 import net.neoforged.fml.ModList;
-import top.theillusivec4.curios.api.CuriosCapability;
-import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -363,14 +362,21 @@ public class AEHelper {
         }
         // Curios/trinkets (soft dependency at runtime)
         if (ModList.get().isLoaded("curios")) {
-            ICuriosItemHandler curios = player.getCapability(CuriosCapability.INVENTORY);
-            if (curios != null) {
-                var equipped = curios.getEquippedCurios();
-                for (int i = 0; i < equipped.getSlots(); i++) {
-                    if (equipped.getStackInSlot(i).getItem() instanceof WirelessTerminalItem) {
-                        return MenuLocators.forCurioSlot(i);
+            try {
+                var capClass = Class.forName("top.theillusivec4.curios.api.CuriosCapability");
+                var cap = capClass.getDeclaredField("INVENTORY").get(null);
+                var curios = ServerPlayer.class.getMethod("getCapability", cap.getClass()).invoke(player, cap);
+                if (curios != null) {
+                    var equipped = curios.getClass().getMethod("getEquippedCurios").invoke(curios);
+                    if (equipped instanceof IItemHandler ih) {
+                        for (int i = 0; i < ih.getSlots(); i++) {
+                            if (ih.getStackInSlot(i).getItem() instanceof WirelessTerminalItem) {
+                                return MenuLocators.forCurioSlot(i);
+                            }
+                        }
                     }
                 }
+            } catch (Exception ignored) {
             }
         }
         return null;
