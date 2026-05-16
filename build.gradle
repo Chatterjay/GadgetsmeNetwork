@@ -18,6 +18,10 @@ repositories {
         name = "Illusive Soulworks Maven"
         url = "https://maven.theillusivec4.top/"
     }
+    maven {
+        name = "Octo Studios"
+        url = "https://maven.octo-studios.com/releases"
+    }
 }
 
 base {
@@ -74,7 +78,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 dependencies {
     implementation "maven.modrinth:ae2:19.2.17"
     implementation files('libs/buildinggadgets2-1.3.9.jar')
-    compileOnly "top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1"
+    compileOnly files('libs/curios-neoforge-9.5.1+1.21.1.jar')
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

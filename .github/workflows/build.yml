@@ -43,6 +43,11 @@ jobs:
           mkdir -p gadgetsme_network/libs
           cp BuildingGadgets2/build/libs/buildinggadgets2-*.jar gadgetsme_network/libs/
 
+      - name: Download Curios jar
+        run: |
+          curl -Lo gadgetsme_network/libs/curios-neoforge-9.5.1+1.21.1.jar \
+            "https://maven.theillusivec4.top/top/theillusivec4/curios/curios-neoforge/9.5.1+1.21.1/curios-neoforge-9.5.1+1.21.1.jar"
+
       - name: Setup Gradle (GadgetsME Network)
         uses: gradle/actions/setup-gradle@v4
         with:
