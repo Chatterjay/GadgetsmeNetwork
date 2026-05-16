@@ -1,13 +1,13 @@
-# Changelog
+# 更新日志
 
 ## [0.0.1] - 2026-05-16
 
-### Added
-- "Order from AE" button in Building Gadgets 2 MaterialListGUI
-- AE network integration via bound gadget block position
-- Real-time AE network item count display in material list
-- Sequential auto-craft queue for multiple missing items
-- Inventory and AE stock deduction before queuing crafts
-- Chinese (zh_cn) and English (en_us) localization
-- Wireless terminal detection (main hand, offhand, inventory)
-- Network sync for AE count queries and craft requests
+### 新增
+- 在 Building Gadgets 2 材料列表界面添加"从AE下单"按钮
+- 通过绑定方块位置实现 AE 网络集成
+- 材料列表中实时显示 AE 网络物品数量
+- 多个缺失物品的自动合成队列（依次弹窗）
+- 入队前自动扣除背包和 AE 网络中已有的物品
+- 中文和英文本地化
+- 无线终端检测（主手、副手、背包、饰品栏）
+- AE 数量查询和合成请求的网络同步

@@ -1,28 +1,30 @@
 # GadgetsME Network
 
-A NeoForge 1.21.1 mod that integrates **Building Gadgets 2** with **Applied Energistics 2**, adding an "Order from AE" button to the material list GUI.
+一个 NeoForge 1.21.1 模组，将 **Building Gadgets 2** 与 **Applied Energistics 2** 集成，在材料列表界面添加"从AE下单"功能。
 
-## Features
+## 功能
 
-- **Order from AE** — Adds a button in BG2's MaterialListGUI to automatically craft missing items through AE2
-- **Smart stock check** — Deducts items already present in your inventory and AE network before queuing crafts
-- **Sequential popup** — Multiple missing items open one-by-one in AE2's native CraftAmountScreen
-- **Wireless terminal support** — Detects wireless terminals in main hand, offhand, or inventory
+- **从AE下单** — 在 BG2 的材料列表界面中添加按钮，自动通过 AE2 合成缺失物品
+- **智能库存检查** — 下单前自动扣除背包和 AE 网络中已有的物品
+- **依次弹窗** — 多个缺失物品逐个在 AE2 的合成数量界面中打开
+- **无线终端支持** — 检测主手、副手、背包和饰品栏中的无线终端
+- **网络扫描** — 绑定到无线访问点后自动搜索网络上的合成终端
+- **饰品栏支持** — 无线终端放在 Curios 饰品栏中也能正常使用
 
-## Dependencies
+## 前置模组
 
 - [NeoForge](https://neoforged.net/) 21.1.230+
 - [Building Gadgets 2](https://www.curseforge.com/minecraft/mc-mods/building-gadgets-2) 1.3.9+
 - [Applied Energistics 2](https://www.curseforge.com/minecraft/mc-mods/applied-energistics-2) 19.2.17+
 
-## Usage
+## 使用方法
 
-1. Bind your Building Gadget to any AE2 cable/subnet/controller using the gadget's bind mode
-2. Open the Building Gadget's Material List GUI
-3. Click **"Order from AE"** to auto-craft all missing materials
-4. For each missing item, the AE2 CraftAmountScreen opens automatically
-5. Confirm or skip each item — the queue advances to the next
+1. 使用小帮手的绑定模式，将小帮手绑定到任意 AE2 线缆/子网/控制器（或无线访问点）
+2. 打开小帮手的材料列表界面
+3. 点击 **"从AE下单"** 自动合成所有缺失材料
+4. 每个缺失物品会自动弹出 AE2 合成数量界面
+5. 确认或跳过每个物品 — 队列会自动推进到下一个
 
-## License
+## 许可证
 
 GNU AGPL 3.0

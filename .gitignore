@@ -123,3 +123,8 @@ libs/
 
 # Test directory
 test/
+
+# Jar extraction artifacts
+.cache/
+META-INF/
+pack.mcmeta

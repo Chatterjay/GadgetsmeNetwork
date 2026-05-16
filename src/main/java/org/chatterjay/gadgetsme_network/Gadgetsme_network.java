@@ -1,13 +1,23 @@
 package org.chatterjay.gadgetsme_network;
 
+import com.direwolf20.buildinggadgets2.common.capabilities.EnergyStorageItemstack;
+import com.direwolf20.buildinggadgets2.common.items.BaseGadget;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.chatterjay.gadgetsme_network.ae.AEHelper;
 import org.chatterjay.gadgetsme_network.client.AEClientCache;
+import org.chatterjay.gadgetsme_network.items.AEGadgetCopyPaste;
 import org.chatterjay.gadgetsme_network.network.AECountRequestPayload;
 import org.chatterjay.gadgetsme_network.network.AECountResponsePayload;
 import org.chatterjay.gadgetsme_network.network.OpenCraftAmountListPayload;
@@ -17,36 +27,51 @@ import org.chatterjay.gadgetsme_network.network.OpenCraftAmountPayload;
 public class Gadgetsme_network {
     public static final String MODID = "gadgetsme_network";
 
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, MODID);
+    private static final DeferredHolder<Item, AEGadgetCopyPaste> AE_GADGET = ITEMS.register("ae2_gadget_copy_paste", AEGadgetCopyPaste::new);
+
     public Gadgetsme_network(IEventBus modEventBus, ModContainer modContainer) {
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        ITEMS.register(modEventBus);
         modEventBus.addListener(RegisterPayloadHandlersEvent.class, this::registerPayloads);
+        modEventBus.addListener(this::registerCapabilities);
+        modEventBus.addListener(this::addCreative);
+    }
+
+    private void addCreative(BuildCreativeModeTabContentsEvent event) {
+        var tabKey = com.direwolf20.buildinggadgets2.setup.ModSetup.TAB_BUILDINGGADGETS2.getKey();
+        if (tabKey.equals(event.getTabKey())) {
+            event.accept(AE_GADGET.get());
+        }
+    }
+
+    private void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerItem(Capabilities.EnergyStorage.ITEM,
+                (itemStack, context) -> new EnergyStorageItemstack(((BaseGadget) itemStack.getItem()).getEnergyMax(), itemStack),
+                AE_GADGET.get());
     }
 
     private void registerPayloads(final RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(MODID);
 
-        // C2S: Open native AE2 CraftAmountScreen for a single missing item
         registrar.playToServer(
                 OpenCraftAmountPayload.TYPE,
                 OpenCraftAmountPayload.STREAM_CODEC,
                 AEHelper::handleOpenCraftAmount
         );
 
-        // C2S: Open native AE2 CraftAmountScreen for multiple items (sequential queue)
         registrar.playToServer(
                 OpenCraftAmountListPayload.TYPE,
                 OpenCraftAmountListPayload.STREAM_CODEC,
                 AEHelper::handleOpenCraftAmountList
         );
 
-        // C2S: Query AE item counts
         registrar.playToServer(
                 AECountRequestPayload.TYPE,
                 AECountRequestPayload.STREAM_CODEC,
                 AEHelper::handleCountRequest
         );
 
-        // S2C: AE item counts response
         registrar.playToClient(
                 AECountResponsePayload.TYPE,
                 AECountResponsePayload.STREAM_CODEC,

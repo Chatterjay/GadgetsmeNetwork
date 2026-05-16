@@ -5,16 +5,11 @@
   "compatibilityLevel": "JAVA_21",
   "refmap": "gadgetsme_network.refmap.json",
   "mixins": [
-    "ScreenInvoker",
     "CraftAmountMenuMixin",
     "CraftConfirmMenuMixin",
     "CraftMenuCloseMixin"
   ],
-  "client": [
-    "MaterialListGUIAccessor",
-    "MaterialListGUIMixin",
-    "MaterialListEntryMixin"
-  ],
+  "client": ["ScreenOpenerMixin", "ModeRadialMenuMixin"],
   "injectors": {
     "defaultRequire": 1
   }

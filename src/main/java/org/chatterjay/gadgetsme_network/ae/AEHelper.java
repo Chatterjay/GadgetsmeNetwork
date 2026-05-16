@@ -14,6 +14,7 @@ import appeng.items.tools.powered.WirelessTerminalItem;
 import appeng.menu.locator.MenuHostLocator;
 import appeng.menu.locator.MenuLocators;
 import appeng.menu.me.crafting.CraftAmountMenu;
+import appeng.parts.AEBasePart;
 import com.direwolf20.buildinggadgets2.common.items.BaseGadget;
 import com.direwolf20.buildinggadgets2.util.GadgetNBT;
 import net.minecraft.core.Direction;
@@ -36,6 +37,9 @@ import org.chatterjay.gadgetsme_network.network.OpenCraftAmountPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.neoforged.fml.ModList;
+import top.theillusivec4.curios.api.CuriosCapability;
+import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -133,8 +137,15 @@ public class AEHelper {
                 }
             }
 
+            // Try to find an ISubMenuHost on the bound grid
+            locator = findSubMenuHostOnGrid(level, gadget);
+            if (locator != null) {
+                CraftAmountMenu.open(serverPlayer, locator, key, missingCount);
+                return;
+            }
+
             serverPlayer.sendSystemMessage(
-                    Component.literal("§c[GadgetsME] §f需要手持无线终端或绑定到合成终端！"));
+                    Component.literal("§c[GadgetsME] §f需要无线终端或绑定到合成终端！"));
         });
     }
 
@@ -221,22 +232,15 @@ public class AEHelper {
             if (key == null) continue;
 
             ICraftingService craftingService = grid.getCraftingService();
-            if (!craftingService.isCraftable(key)) {
-                player.sendSystemMessage(
-                        Component.literal("§c[GadgetsME] §f" + stack.getHoverName().getString() + " §7无样板，跳过"));
-                continue;
-            }
+            if (!craftingService.isCraftable(key)) continue;
 
             int missingCount = stack.getCount();
 
-            // Try wireless terminal first
+            // Try wireless terminal (hand, inventory, curios)
             MenuHostLocator locator = findTerminalLocator(player);
             if (locator != null) {
                 CraftAmountMenu.open(player, locator, key, missingCount);
                 if (player.containerMenu instanceof CraftAmountMenu) return;
-                // Menu didn't open (e.g. missing raw materials) — skip to next
-                player.sendSystemMessage(
-                        Component.literal("§c[GadgetsME] §f无法打开下单界面，跳过: " + stack.getHoverName().getString()));
                 continue;
             }
 
@@ -248,16 +252,18 @@ public class AEHelper {
                     locator = MenuLocators.forBlockEntity(be);
                     CraftAmountMenu.open(player, locator, key, missingCount);
                     if (player.containerMenu instanceof CraftAmountMenu) return;
-                    player.sendSystemMessage(
-                            Component.literal("§c[GadgetsME] §f无法打开下单界面，跳过: " + stack.getHoverName().getString()));
                     continue;
                 }
             }
 
-            // No terminal found — skip this item and try the next
-            player.sendSystemMessage(
-                    Component.literal("§c[GadgetsME] §f需要无线终端或合成终端，跳过: " + stack.getHoverName().getString()));
-            // Loop continues to next item
+            // Try to find an ISubMenuHost on the bound grid
+            locator = findSubMenuHostOnGrid(level, gadget);
+            if (locator != null) {
+                CraftAmountMenu.open(player, locator, key, missingCount);
+                if (player.containerMenu instanceof CraftAmountMenu) return;
+                continue;
+            }
+            // No terminal available — skip this item silently
         }
     }
 
@@ -345,16 +351,53 @@ public class AEHelper {
 
     @Nullable
     private static MenuHostLocator findTerminalLocator(ServerPlayer player) {
+        // Main hand
         if (player.getMainHandItem().getItem() instanceof WirelessTerminalItem) {
             return MenuLocators.forHand(player, InteractionHand.MAIN_HAND);
         }
+        // Off hand
         if (player.getOffhandItem().getItem() instanceof WirelessTerminalItem) {
             return MenuLocators.forHand(player, InteractionHand.OFF_HAND);
         }
+        // Inventory
         var inventory = player.getInventory();
         for (int i = 0; i < inventory.items.size(); i++) {
             if (inventory.items.get(i).getItem() instanceof WirelessTerminalItem) {
                 return MenuLocators.forInventorySlot(i);
+            }
+        }
+        // Curios/trinkets (soft dependency at runtime)
+        if (ModList.get().isLoaded("curios")) {
+            ICuriosItemHandler curios = player.getCapability(CuriosCapability.INVENTORY);
+            if (curios != null) {
+                var equipped = curios.getEquippedCurios();
+                for (int i = 0; i < equipped.getSlots(); i++) {
+                    if (equipped.getStackInSlot(i).getItem() instanceof WirelessTerminalItem) {
+                        return MenuLocators.forCurioSlot(i);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Scan the grid connected to the bound gadget for any ISubMenuHost.
+     * This allows ordering from any terminal on the network (not just the bound block).
+     */
+    @Nullable
+    private static MenuHostLocator findSubMenuHostOnGrid(ServerLevel level, ItemStack gadget) {
+        IGrid grid = getGridFromGadget(gadget, level);
+        if (grid == null) return null;
+        for (IGridNode node : grid.getNodes()) {
+            Object owner = node.getOwner();
+            if (owner instanceof ISubMenuHost) {
+                if (owner instanceof BlockEntity be) {
+                    return MenuLocators.forBlockEntity(be);
+                }
+                if (owner instanceof AEBasePart part) {
+                    return MenuLocators.forPart(part);
+                }
             }
         }
         return null;
