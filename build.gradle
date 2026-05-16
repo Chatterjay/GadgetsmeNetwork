@@ -18,10 +18,10 @@ repositories {
         name = "Illusive Soulworks Maven"
         url = "https://maven.theillusivec4.top/"
     }
-    maven {
-        name = "Octo Studios"
-        url = "https://maven.octo-studios.com/releases"
-    }
+}
+
+configurations.all {
+    resolutionStrategy.force "top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1"
 }
 
 base {
