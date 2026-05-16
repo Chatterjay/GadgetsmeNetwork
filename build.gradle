@@ -18,6 +18,10 @@ repositories {
         name = "Illusive Soulworks Maven"
         url = "https://maven.theillusivec4.top/"
     }
+    maven {
+        name = "Curios Mirror (ilxom)"
+        url = "https://maven.ilxom.com/releases/"
+    }
 }
 
 configurations.all {
