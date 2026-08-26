@@ -210,6 +210,14 @@ public class AEHelper {
                 return;
             }
 
+            if (findTerminalLocator(serverPlayer) == null) {
+                Diagnostics.log("order-batch: {} shortage(s) but no wireless terminal on player, cannot order",
+                        craftableItems.size());
+                serverPlayer.sendSystemMessage(Component.translatable(
+                        "gadgetsme_network.messages.no_terminal", craftableItems.size()));
+                return;
+            }
+
             Diagnostics.log("order-batch: queueing {} item type(s) for manual ordering", craftableItems.size());
             craftQueue.put(serverPlayer.getUUID(), craftableItems);
             openNextCraft(serverPlayer);
@@ -266,9 +274,9 @@ public class AEHelper {
         // pop open an unrelated block's GUI after ordering — so don't.
         MenuHostLocator locator = findTerminalLocator(player);
         if (locator == null) {
-            Diagnostics.log("queue: no wireless terminal available, skipping {}", name);
-            queue.remove(0);
-            openNextCraft(player, attempts);
+            craftQueue.remove(uuid);
+            Diagnostics.log("queue: no wireless terminal on player, chain aborted ({} type(s) left)", queue.size());
+            player.sendSystemMessage(Component.translatable("gadgetsme_network.messages.chain_stopped_terminal"));
             return;
         }
 
@@ -481,6 +489,15 @@ public class AEHelper {
 
         if (toOrder.isEmpty()) {
             Diagnostics.log("audit: no orderable shortage, paste proceeds normally");
+            return false;
+        }
+
+        // Ordering needs a wireless terminal to host AE2's amount screens —
+        // without one, say so explicitly and let the normal paste proceed.
+        if (findTerminalLocator(player) == null) {
+            Diagnostics.log("audit: {} shortage(s) but no wireless terminal on player, cannot order", toOrder.size());
+            player.sendSystemMessage(Component.translatable(
+                    "gadgetsme_network.messages.no_terminal", toOrder.size()));
             return false;
         }
 
