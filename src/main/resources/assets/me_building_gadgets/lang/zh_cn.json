@@ -1,5 +1,7 @@
 {
   "me_building_gadgets.ae_order": "从ME下单",
+  "me_building_gadgets.tooltip.copy_paste": "§e潜行+右键 §7强制粘贴，跳过下单 §8| §a右键 §7缺料时自动下单",
+  "me_building_gadgets.tooltip.build_exchange": "§e潜行+右键 §7选中方块 §8| §a右键 §7缺料时自动下单",
   "me_building_gadgets.messages.no_gadget": "§c[GadgetsME] 未找到绑定的小帮手",
   "me_building_gadgets.messages.no_grid": "§c[GadgetsME] 未连接 ME 网络",
   "me_building_gadgets.messages.chain_stopped_gadget": "§c[GadgetsME] 绑定的小帮手已丢失，停止下单",

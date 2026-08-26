@@ -1,5 +1,7 @@
 {
   "me_building_gadgets.ae_order": "Order from ME",
+  "me_building_gadgets.tooltip.copy_paste": "§eSneak-use §7force-pastes, skipping ordering §8| §ause §7auto-orders shortages",
+  "me_building_gadgets.tooltip.build_exchange": "§eSneak-use §7picks a block §8| §ause §7auto-orders shortages",
   "me_building_gadgets.messages.no_gadget": "§c[GadgetsME] No bound gadget found",
   "me_building_gadgets.messages.no_grid": "§c[GadgetsME] Not connected to an ME network",
   "me_building_gadgets.messages.chain_stopped_gadget": "§c[GadgetsME] Bound gadget lost — ordering stopped",
