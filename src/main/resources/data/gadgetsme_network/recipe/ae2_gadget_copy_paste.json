@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "buildinggadgets2:gadget_copy_paste"
+    },
+    {
+      "item": "ae2:wireless_access_point"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "gadgetsme_network:ae2_gadget_copy_paste"
+  }
+}

@@ -4,6 +4,7 @@ import appeng.menu.me.crafting.CraftAmountMenu;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import org.chatterjay.gadgetsme_network.Diagnostics;
 import org.chatterjay.gadgetsme_network.ae.AEHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,8 +33,10 @@ public class CraftMenuCloseMixin {
         if (!(self instanceof CraftAmountMenu)) return;
         // If confirm() was called, this close is a transition to CraftConfirmMenu — skip
         if (AEHelper.consumeConfirming(serverPlayer)) return;
-        // Player closed CraftAmountMenu without confirming — skip this item, advance
-        // Schedule on next tick to avoid re-entrancy (closeContainer -> removed -> openMenu -> closeContainer -> ...)
-        serverPlayer.server.execute(() -> AEHelper.openNextCraft(serverPlayer));
+        // Player closed CraftAmountMenu without confirming — skip this item, advance.
+        // MUST be deferred to the next tick: we are inside removed(); opening the
+        // next screen here would close this menu again and recurse (StackOverflow).
+        Diagnostics.log("menu-flow: amount menu closed without confirm — skipping item");
+        AEHelper.scheduleAdvancement(serverPlayer);
     }
 }

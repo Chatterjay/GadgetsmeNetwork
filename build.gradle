@@ -14,6 +14,10 @@ repositories {
         name = "Modrinth"
         url = "https://api.modrinth.com/maven"
     }
+    maven {
+        url "https://cursemaven.com"
+    }
+    mavenCentral()
 }
 
 base {
@@ -68,9 +72,12 @@ neoForge {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
-    compileOnly "maven.modrinth:ae2:19.2.17"
-    runtimeOnly "maven.modrinth:ae2:19.2.17"
-    implementation files('libs/buildinggadgets2-1.3.9.jar')
+    implementation "curse.maven:applied-energistics-2-223794:7027323"
+    implementation "curse.maven:building-gadgets-298187:6850515"
+    runtimeOnly "org.appliedenergistics:guideme:21.1.1"
+    runtimeOnly "curse.maven:mekanism-generators-268566:7904061"
+    runtimeOnly "curse.maven:mekanism-268560:7904058"
+    runtimeOnly "curse.maven:emi-580555:8081408"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

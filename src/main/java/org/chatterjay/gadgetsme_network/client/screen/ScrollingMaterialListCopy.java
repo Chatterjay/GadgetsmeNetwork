@@ -110,9 +110,6 @@ public class ScrollingMaterialListCopy extends EntryList<ScrollingMaterialListCo
         private final int available;
         private final ItemStack stack;
         private final String itemName;
-        private final String amount;
-        private final int widthItemName;
-        private final int widthAmount;
 
         public Entry(ScrollingMaterialListCopy parent, ItemStack item, int required, int available) {
             this.parent = parent;
@@ -121,18 +118,21 @@ public class ScrollingMaterialListCopy extends EntryList<ScrollingMaterialListCo
 
             this.stack = item;
             this.itemName = stack.getHoverName().getString();
+        }
 
+        /**
+         * Amount text is computed on render so AE counts arriving asynchronously
+         * (after the initial query) show up immediately without rebuilding entries.
+         */
+        private String getAmountText() {
             ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
             int aeAvailable = AEClientCache.getCount(itemId);
 
+            String base = formatCount(available) + "/" + formatCount(required);
             if (aeAvailable > 0) {
-                this.amount = this.available + "/" + required + " §8[§7AE:" + aeAvailable + "§8]";
-            } else {
-                this.amount = this.available + "/" + required;
+                return base + " §8[§7AE:" + formatCount(aeAvailable) + "§8]";
             }
-
-            this.widthItemName = Minecraft.getInstance().font.width(itemName);
-            this.widthAmount = Minecraft.getInstance().font.width(amount);
+            return base;
         }
 
         @Override
@@ -150,6 +150,7 @@ public class ScrollingMaterialListCopy extends EntryList<ScrollingMaterialListCo
 
         private void drawTextOverlay(GuiGraphics guiGraphics, int right, int top, int bottom, int slotX) {
             int itemNameX = slotX + SLOT_SIZE + MARGIN;
+            String amount = getAmountText();
             Font fontRenderer = Minecraft.getInstance().font;
             int rightEdge = getXForAlignedRight(right, fontRenderer.width(amount)) - 5;
             renderTextVerticalCenter(guiGraphics, itemName, itemNameX, rightEdge, top, bottom, Color.WHITE.getRGB());
@@ -185,11 +186,7 @@ public class ScrollingMaterialListCopy extends EntryList<ScrollingMaterialListCo
         public String getItemName() { return itemName; }
 
         public String getFormattedRequired() {
-            int maxSize = stack.getMaxStackSize();
-            int stacks = required / maxSize;
-            int leftover = required % maxSize;
-            if (stacks == 0) return String.valueOf(leftover);
-            return stacks + "×" + maxSize + "+" + leftover;
+            return formatCount(required);
         }
 
         @Override

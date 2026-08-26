@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_gadget": {
+      "conditions": {
+        "items": [
+          {
+            "items": "buildinggadgets2:gadget_copy_paste"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_receiver": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ae2:wireless_receiver"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "gadgetsme_network:ae2_gadget_copy_paste"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_gadget",
+      "has_receiver"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "gadgetsme_network:ae2_gadget_copy_paste"
+    ]
+  }
+}

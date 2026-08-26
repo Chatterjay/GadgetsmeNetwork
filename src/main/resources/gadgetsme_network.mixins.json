@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "refmap": "gadgetsme_network.refmap.json",
   "mixins": [
+    "AE2MethodsMixin",
     "CraftAmountMenuMixin",
     "CraftConfirmMenuMixin",
     "CraftMenuCloseMixin"

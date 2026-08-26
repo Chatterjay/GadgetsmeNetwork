@@ -31,8 +31,9 @@ public class CraftConfirmMenuMixin {
         if (!AEHelper.hasCraftQueue(serverPlayer)) return;
         // Don't advance if the player clicked "Back" to CraftAmountMenu
         if (AEHelper.consumeGoingBack(serverPlayer)) return;
-        // CraftConfirmMenu was closed (job done or cancelled) — advance to next item
-        // Schedule on next tick to avoid re-entrancy (closeContainer -> removed -> openMenu -> closeContainer -> ...)
-        serverPlayer.server.execute(() -> AEHelper.openNextCraft(serverPlayer));
+        // CraftConfirmMenu was closed (job done or cancelled) — advance to next item.
+        // MUST be deferred to the next tick: we are inside removed(); opening the
+        // next screen here would close this menu again and recurse (StackOverflow).
+        AEHelper.scheduleAdvancement(serverPlayer);
     }
 }

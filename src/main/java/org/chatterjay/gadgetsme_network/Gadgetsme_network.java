@@ -2,12 +2,15 @@ package org.chatterjay.gadgetsme_network;
 
 import com.direwolf20.buildinggadgets2.common.capabilities.EnergyStorageItemstack;
 import com.direwolf20.buildinggadgets2.common.items.BaseGadget;
+import appeng.api.features.GridLinkables;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -22,10 +25,12 @@ import org.chatterjay.gadgetsme_network.network.AECountRequestPayload;
 import org.chatterjay.gadgetsme_network.network.AECountResponsePayload;
 import org.chatterjay.gadgetsme_network.network.OpenCraftAmountListPayload;
 import org.chatterjay.gadgetsme_network.network.OpenCraftAmountPayload;
+import org.slf4j.Logger;
 
 @Mod(Gadgetsme_network.MODID)
 public class Gadgetsme_network {
     public static final String MODID = "gadgetsme_network";
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, MODID);
     private static final DeferredHolder<Item, AEGadgetCopyPaste> AE_GADGET = ITEMS.register("ae2_gadget_copy_paste", AEGadgetCopyPaste::new);
@@ -36,6 +41,12 @@ public class Gadgetsme_network {
         modEventBus.addListener(RegisterPayloadHandlersEvent.class, this::registerPayloads);
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(this::addCreative);
+        modEventBus.addListener(this::setup);
+    }
+
+    private void setup(FMLCommonSetupEvent event) {
+        // Register with AE2 so the gadget can be linked via a Wireless Access Point GUI
+        event.enqueueWork(() -> GridLinkables.register(AE_GADGET.get(), AEGadgetCopyPaste.LINKABLE_HANDLER));
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {

@@ -94,6 +94,9 @@ public class AEMaterialListGUI extends Screen {
         this.calculateButtonsWidthAndX();
 
         if (boundToAE) {
+            // Drop stale counts from any previous session so the display reflects
+            // this query only, then fire a fresh query immediately on open.
+            AEClientCache.clear();
             queryAECounts();
         } else {
             AEClientCache.clear();
@@ -211,6 +214,23 @@ public class AEMaterialListGUI extends Screen {
     }
 
     // Static helpers used by ScrollingMaterialListCopy
+
+    /**
+     * Compact number format for display: 999 → "999", 1500 → "1.5k", 2000000 → "2M".
+     */
+    public static String formatCount(long count) {
+        if (count < 0) return "0";
+        if (count < 1000) return String.valueOf(count);
+        if (count < 1_000_000L) return trimOneDecimal(count / 1000.0) + "k";
+        if (count < 1_000_000_000L) return trimOneDecimal(count / 1_000_000.0) + "M";
+        return trimOneDecimal(count / 1_000_000_000.0) + "B";
+    }
+
+    private static String trimOneDecimal(double value) {
+        String s = String.format("%.1f", value);
+        if (s.endsWith(".0")) s = s.substring(0, s.length() - 2);
+        return s;
+    }
 
     public static int getXForAlignedRight(int right, int width) {
         return right - width;
