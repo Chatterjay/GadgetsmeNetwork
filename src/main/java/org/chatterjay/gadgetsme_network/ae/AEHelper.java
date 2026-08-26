@@ -136,14 +136,14 @@ public class AEHelper {
             ItemStack gadget = findGadgetWithBoundPos(serverPlayer);
             if (gadget.isEmpty()) {
                 serverPlayer.sendSystemMessage(
-                        Component.literal("§c[GadgetsME] 未找到已绑定的小帮手！"));
+                        Component.translatable("gadgetsme_network.messages.no_gadget"));
                 return;
             }
 
             IGrid grid = getGridFromGadget(gadget, serverPlayer.serverLevel());
             if (grid == null) {
                 serverPlayer.sendSystemMessage(
-                        Component.literal("§c[GadgetsME] 未连接AE网络！"));
+                        Component.translatable("gadgetsme_network.messages.no_grid"));
                 return;
             }
 
@@ -167,7 +167,7 @@ public class AEHelper {
             if (gadget.isEmpty()) {
                 Diagnostics.log("order-batch: no bound gadget found, aborting");
                 serverPlayer.sendSystemMessage(
-                        Component.literal("§c[GadgetsME] 未找到已绑定的小帮手！"));
+                        Component.translatable("gadgetsme_network.messages.no_gadget"));
                 return;
             }
 
@@ -175,7 +175,7 @@ public class AEHelper {
             if (grid == null) {
                 Diagnostics.log("order-batch: no grid from gadget, aborting");
                 serverPlayer.sendSystemMessage(
-                        Component.literal("§c[GadgetsME] 未连接AE网络！"));
+                        Component.translatable("gadgetsme_network.messages.no_grid"));
                 return;
             }
 
@@ -206,7 +206,7 @@ public class AEHelper {
             if (craftableItems.isEmpty()) {
                 Diagnostics.log("order-batch: nothing to queue");
                 serverPlayer.sendSystemMessage(
-                        Component.literal("§7[GadgetsME] 缺失材料均无样板或已有库存/合成中，无需下单"));
+                        Component.translatable("gadgetsme_network.messages.nothing_to_order"));
                 return;
             }
 
@@ -242,14 +242,14 @@ public class AEHelper {
         if (gadget.isEmpty()) {
             craftQueue.remove(uuid);
             Diagnostics.log("queue: bound gadget vanished, chain aborted ({} type(s) left)", queue.size());
-            player.sendSystemMessage(Component.literal("§c[GadgetsME] 未找到已绑定的小帮手，下单终止"));
+            player.sendSystemMessage(Component.translatable("gadgetsme_network.messages.chain_stopped_gadget"));
             return;
         }
         IGrid grid = getGridFromGadget(gadget, player.serverLevel());
         if (grid == null) {
             craftQueue.remove(uuid);
             Diagnostics.log("queue: grid unreachable, chain aborted ({} type(s) left)", queue.size());
-            player.sendSystemMessage(Component.literal("§c[GadgetsME] 未连接AE网络，下单终止"));
+            player.sendSystemMessage(Component.translatable("gadgetsme_network.messages.chain_stopped_grid"));
             return;
         }
 
@@ -485,8 +485,7 @@ public class AEHelper {
         }
 
         // Chain AE2's own amount screens: confirm one item, the next pops up.
-        player.sendSystemMessage(Component.literal("§7[GadgetsME] 缺料 " + toOrder.size()
-                + " 种，请逐一确认下单（关闭界面可跳过当前材料）"));
+        player.sendSystemMessage(Component.translatable("gadgetsme_network.messages.shortage_queued", toOrder.size()));
         Diagnostics.log("audit: queueing {} item type(s), opening first AE2 amount screen", toOrder.size());
         craftQueue.put(player.getUUID(), new ArrayList<>(toOrder));
         openNextCraft(player);

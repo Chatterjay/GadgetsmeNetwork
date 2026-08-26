@@ -1,4 +1,10 @@
 {
   "gadgetsme_network.ae_order": "从ME下单",
+  "gadgetsme_network.messages.no_gadget": "§c[GadgetsME] 未找到已绑定的小帮手！",
+  "gadgetsme_network.messages.no_grid": "§c[GadgetsME] 未连接AE网络！",
+  "gadgetsme_network.messages.chain_stopped_gadget": "§c[GadgetsME] 未找到已绑定的小帮手，下单终止",
+  "gadgetsme_network.messages.chain_stopped_grid": "§c[GadgetsME] 未连接AE网络，下单终止",
+  "gadgetsme_network.messages.nothing_to_order": "§7[GadgetsME] 缺失材料均无样板或已有库存/合成中，无需下单",
+  "gadgetsme_network.messages.shortage_queued": "§7[GadgetsME] 缺料 %s 种，请逐一确认下单（关闭界面可跳过当前材料）",
   "item.gadgetsme_network.ae2_gadget_copy_paste": "ME复制粘贴小帮手"
 }
