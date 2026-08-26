@@ -30,6 +30,15 @@
 3. 所有缺失且有样板的材料会依次弹出 AE2 原生的合成数量界面：确认一个订单后自动弹出到下一个，关闭界面即跳过当前材料
 4. 材料到位后再次右键即可粘贴建造；Shift+右键可跳过审计强制粘贴
 
+## 开发规范
+
+- **目录结构**：`ae/` AE 集成逻辑 · `items/` 三款小帮手 · `client/` 客户端 GUI 与缓存 · `mixin/` BG2/AE2 注入 · `network/` 网络包
+- **命名**：物品 ID 用 kebab-case；玩家可见文案一律放语言文件（`zh_cn` / `en_us`），键前缀 `me_building_gadgets.messages.*`，禁止硬编码字符串
+- **客户端隔离**：渲染/GUI 代码按 BG2 模式标注 `@OnlyIn(Dist.CLIENT)` 并做客户端空判，公共类不得引用 `net.minecraft.client.*`
+- **诊断日志**：统一走 `Diagnostics.log`（标签 `[GadgetsME/diag]`），由 `debugLog` 配置控制，日志保持英文单语
+- **提交信息**：`type: 中文描述`，type ∈ `feat / fix / refactor / docs / chore / ci / i18n`，相关改动分批提交
+- **提交前**：`./gradlew build` 通过再提交
+
 ## 许可证
 
 GNU AGPL 3.0
