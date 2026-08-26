@@ -3,23 +3,16 @@ package org.chatterjay.gadgetsme_network.items;
 import com.direwolf20.buildinggadgets2.api.gadgets.GadgetTarget;
 import com.direwolf20.buildinggadgets2.common.items.GadgetExchanger;
 import com.direwolf20.buildinggadgets2.setup.Config;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.chatterjay.gadgetsme_network.Diagnostics;
 import org.chatterjay.gadgetsme_network.ae.AEHelper;
 
-import java.util.List;
 
 /**
  * ME 更替小帮手 — an Exchanging Gadget wired to the AE network.
@@ -46,14 +39,6 @@ public class MEExchangerGadget extends GadgetExchanger {
         return GadgetTarget.EXCHANGING;
     }
 
-    @OnlyIn(Dist.CLIENT)
-    @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
-        super.appendHoverText(stack, context, tooltip, flagIn);
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || mc.player == null) return;
-        tooltip.add(Component.translatable("me_building_gadgets.tooltip.build_exchange"));
-    }
 
     /**
      * Right-click audits the pending exchange before running it; shift+right-click
