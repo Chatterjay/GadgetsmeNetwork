@@ -22,6 +22,7 @@ import com.direwolf20.buildinggadgets2.util.GadgetUtils;
 import com.direwolf20.buildinggadgets2.util.ItemStackKey;
 import com.direwolf20.buildinggadgets2.util.VectorHelper;
 import com.direwolf20.buildinggadgets2.util.datatypes.StatePos;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
@@ -651,17 +652,18 @@ public class AEHelper {
         return true;
     }
 
-    /** "Stone×64, Dirt×10" style listing (hover names resolve client-side). */
+    /** Highlighted "Stone×64, Dirt×10" style listing (names resolve client-side). */
     private static Component formatShortageList(List<ItemStack> stacks) {
         MutableComponent list = Component.empty();
         int shown = Math.min(stacks.size(), 5);
         for (int i = 0; i < shown; i++) {
-            if (i > 0) list.append(Component.literal(", "));
+            if (i > 0) list.append(Component.literal(", ").withStyle(ChatFormatting.DARK_GRAY));
             ItemStack stack = stacks.get(i);
-            list.append(stack.getHoverName());
-            list.append(Component.literal("×" + stack.getCount()));
+            list.append(stack.getHoverName().copy().withStyle(ChatFormatting.WHITE));
+            list.append(Component.literal("×" + stack.getCount()).withStyle(ChatFormatting.GOLD));
         }
-        if (stacks.size() > shown) list.append(Component.literal(", …"));
+        if (stacks.size() > shown)
+            list.append(Component.literal(" …").withStyle(ChatFormatting.DARK_GRAY));
         return list;
     }
 
