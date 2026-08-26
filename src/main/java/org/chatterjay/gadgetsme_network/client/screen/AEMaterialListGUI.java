@@ -1,8 +1,6 @@
 package org.chatterjay.gadgetsme_network.client.screen;
 
 import com.direwolf20.buildinggadgets2.BuildingGadgets2;
-import com.direwolf20.buildinggadgets2.common.items.BaseGadget;
-import com.direwolf20.buildinggadgets2.util.GadgetNBT;
 import com.google.common.collect.Lists;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -17,7 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.chatterjay.gadgetsme_network.ae.AEHelper;
 import org.chatterjay.gadgetsme_network.client.AEClientCache;

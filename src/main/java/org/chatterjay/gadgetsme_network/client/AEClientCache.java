@@ -23,8 +23,4 @@ public class AEClientCache {
     public static int getCount(ResourceLocation itemId) {
         return aeCounts.getOrDefault(itemId, 0);
     }
-
-    public static boolean hasData() {
-        return !aeCounts.isEmpty();
-    }
 }
