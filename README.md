@@ -20,4 +20,4 @@
 
 ## 许可证
 
-GNU AGPL 3.0
+GNU LGPL 3.0（详见根目录 [LICENSE](LICENSE)）

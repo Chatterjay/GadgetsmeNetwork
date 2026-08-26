@@ -71,6 +71,11 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+// Ship the repository-level license text inside the mod jar
+processResources {
+    from rootProject.file('LICENSE')
+}
+
 dependencies {
     implementation "curse.maven:applied-energistics-2-223794:7027323"
     implementation "curse.maven:building-gadgets-298187:6850515"
