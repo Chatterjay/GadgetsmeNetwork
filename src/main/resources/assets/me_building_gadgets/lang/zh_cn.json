@@ -1,13 +1,13 @@
 {
   "me_building_gadgets.ae_order": "从ME下单",
   "me_building_gadgets.messages.no_gadget": "§c[GadgetsME] 未找到已绑定的小帮手！",
-  "me_building_gadgets.messages.no_grid": "§c[GadgetsME] 未连接AE网络！",
-  "me_building_gadgets.messages.chain_stopped_gadget": "§c[GadgetsME] 未找到已绑定的小帮手，下单终止",
-  "me_building_gadgets.messages.chain_stopped_grid": "§c[GadgetsME] 未连接AE网络，下单终止",
+  "me_building_gadgets.messages.no_grid": "§c[GadgetsME] 未连接ME网络！",
+  "me_building_gadgets.messages.chain_stopped_gadget": "§c[GadgetsME] 未找到已绑定的小帮手",
+  "me_building_gadgets.messages.chain_stopped_grid": "§c[GadgetsME] 未连接ME网络",
   "me_building_gadgets.messages.nothing_to_order": "§7[GadgetsME] 缺失材料均无样板或已有库存/合成中，无需下单",
   "me_building_gadgets.messages.no_terminal": "§c[GadgetsME] 缺料 %s 种且有样板，但身上没有无线终端，无法下单",
-  "me_building_gadgets.messages.chain_stopped_terminal": "§c[GadgetsME] 未找到无线终端，下单终止",
-  "me_building_gadgets.messages.shortage_queued": "§7[GadgetsME] 缺料 %s 种，请逐一确认下单（关闭界面可跳过当前材料）",
+  "me_building_gadgets.messages.chain_stopped_terminal": "§c[GadgetsME] 未找到无线终端",
+  "me_building_gadgets.messages.shortage_queued": "§7[GadgetsME] 缺料 %s 种，请逐一确认下单",
   "item.me_building_gadgets.ae2_gadget_copy_paste": "ME复制粘贴小帮手",
   "item.me_building_gadgets.me_building_gadget": "ME建筑小帮手",
   "item.me_building_gadgets.me_exchanging_gadget": "ME更替小帮手"

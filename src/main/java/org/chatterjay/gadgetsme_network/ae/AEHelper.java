@@ -265,6 +265,14 @@ public class AEHelper {
         if (queue == null || queue.isEmpty()) {
             craftQueue.remove(uuid);
             Diagnostics.log("queue: drained, ordering chain finished");
+            // After the final confirmation AE2 opens its crafting-status /
+            // terminal screen (startJob -> openWithCraftingList) — close it so
+            // the player lands straight back in the world.
+            if (!player.hasDisconnected() && player.containerMenu != null) {
+                Diagnostics.log("queue: closing {} left open by AE2 after ordering",
+                        player.containerMenu.getClass().getSimpleName());
+                player.closeContainer();
+            }
             return;
         }
 
@@ -621,7 +629,8 @@ public class AEHelper {
     }
 
     /** Count how many of the given item the AE network currently holds. */
-    private static long countOnNetwork(IGrid grid, ServerPlayer player, ItemStack proto) {        AEItemKey key = AEItemKey.of(proto);
+    private static long countOnNetwork(IGrid grid, ServerPlayer player, ItemStack proto) {
+        AEItemKey key = AEItemKey.of(proto);
         if (key == null) return 0;
         MEStorage storage = grid.getStorageService().getInventory();
         return storage.extract(key, Long.MAX_VALUE, Actionable.SIMULATE, IActionSource.ofPlayer(player));
