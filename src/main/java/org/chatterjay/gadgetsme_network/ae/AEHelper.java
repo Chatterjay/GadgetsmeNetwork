@@ -27,6 +27,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -205,16 +206,15 @@ public class AEHelper {
             }
 
             ICraftingService craftingService = grid.getCraftingService();
-            List<ItemStack> craftableItems = new ArrayList<>();
+            IActionSource actionSource = IActionSource.ofPlayer(serverPlayer);
+            MEStorage networkStorage = grid.getStorageService().getInventory();
+
+            List<ItemStack> orderable = new ArrayList<>();
+            List<ItemStack> unpatterned = new ArrayList<>();
             for (ItemStack stack : payload.items()) {
                 AEItemKey key = AEItemKey.of(stack);
-                if (key == null || !craftingService.isCraftable(key)) {
-                    Diagnostics.log("order-batch: {} has no pattern, skipped",
-                            stack.getHoverName().getString());
-                    continue;
-                }
-                IActionSource actionSource = IActionSource.ofPlayer(serverPlayer);
-                MEStorage networkStorage = grid.getStorageService().getInventory();
+                if (key == null) continue;
+
                 long onNetwork = networkStorage.extract(key, stack.getCount(), Actionable.SIMULATE, actionSource);
                 long requested = craftingService.getRequestedAmount(key);
                 long needed = stack.getCount() - onNetwork - requested;
@@ -225,27 +225,24 @@ public class AEHelper {
 
                 ItemStack shortage = stack.copy();
                 shortage.setCount((int) Math.min(needed, Integer.MAX_VALUE));
-                craftableItems.add(shortage);
+
+                if (!craftingService.isCraftable(key)) {
+                    Diagnostics.log("order-batch: {} has no pattern, cannot order",
+                            stack.getHoverName().getString());
+                    unpatterned.add(shortage);
+                    continue;
+                }
+                orderable.add(shortage);
             }
 
-            if (craftableItems.isEmpty()) {
+            if (orderable.isEmpty() && unpatterned.isEmpty()) {
                 Diagnostics.log("order-batch: nothing to queue");
                 serverPlayer.sendSystemMessage(
                         Component.translatable("me_building_gadgets.messages.nothing_to_order"));
                 return;
             }
 
-            if (findTerminalLocator(serverPlayer) == null) {
-                Diagnostics.log("order-batch: {} shortage(s) but no wireless terminal on player, cannot order",
-                        craftableItems.size());
-                serverPlayer.sendSystemMessage(Component.translatable(
-                        "me_building_gadgets.messages.no_terminal", craftableItems.size()));
-                return;
-            }
-
-            Diagnostics.log("order-batch: queueing {} item type(s) for manual ordering", craftableItems.size());
-            craftQueue.put(serverPlayer.getUUID(), craftableItems);
-            openNextCraft(serverPlayer);
+            startOrderChain(serverPlayer, new ShortageReport(orderable, unpatterned));
         });
     }
 
@@ -484,8 +481,7 @@ public class AEHelper {
         }
 
         Map<ItemStackKey, Integer> required = StatePos.getItemList(statePosList);
-        List<ItemStack> toOrder = computeOrderShortages(player, gadget, grid, required);
-        return startOrderChain(player, toOrder);
+        return startOrderChain(player, computeOrderShortages(player, gadget, grid, required));
     }
 
     /**
@@ -524,8 +520,7 @@ public class AEHelper {
         Diagnostics.log("audit-action: mode {} would use {} block position(s)",
                 GadgetNBT.getMode(gadget).getId(), pendingList.size());
 
-        List<ItemStack> toOrder = computeOrderShortages(player, gadget, grid, required);
-        return startOrderChain(player, toOrder);
+        return startOrderChain(player, computeOrderShortages(player, gadget, grid, required));
     }
 
     /**
@@ -552,14 +547,17 @@ public class AEHelper {
      * Per-item availability breakdown shared by all audits. Required amounts are
      * checked against, in order: the player's inventory, the bound container, the
      * AE network itself (BG2 pulls from it too), and crafting jobs already in flight.
-     * Every remaining shortage that has a pattern becomes an orderable stack.
+     * Shortages split into {@link ShortageReport#orderable()} (has a pattern) and
+     * {@link ShortageReport#unpatterned()} (crafting impossible — reported to the
+     * player instead of being dropped silently).
      */
-    public static List<ItemStack> computeOrderShortages(ServerPlayer player, ItemStack gadget, IGrid grid,
-                                                        Map<ItemStackKey, Integer> required) {
-        List<ItemStack> toOrder = new ArrayList<>();
+    public static ShortageReport computeOrderShortages(ServerPlayer player, ItemStack gadget, IGrid grid,
+                                                       Map<ItemStackKey, Integer> required) {
+        List<ItemStack> orderable = new ArrayList<>();
+        List<ItemStack> unpatterned = new ArrayList<>();
         if (player.isCreative()) {
             Diagnostics.log("audit: creative player, materials are free — nothing to order");
-            return toOrder;
+            return new ShortageReport(orderable, unpatterned);
         }
 
         ICraftingService craftingService = grid.getCraftingService();
@@ -587,27 +585,52 @@ public class AEHelper {
 
             if (needed <= 0) continue;
 
-            if (!hasPattern) {
-                Diagnostics.log("audit {}: shortage of {} but no pattern, cannot order", name, needed);
-                continue;
-            }
             ItemStack shortage = proto.copy();
             shortage.setCount(needed);
-            toOrder.add(shortage);
+
+            if (!hasPattern) {
+                Diagnostics.log("audit {}: shortage of {} but no pattern, cannot order", name, needed);
+                unpatterned.add(shortage);
+                continue;
+            }
+            orderable.add(shortage);
         }
-        return toOrder;
+        return new ShortageReport(orderable, unpatterned);
+    }
+
+    /** Shortages of one pending action, split by whether AE2 can craft them. */
+    public record ShortageReport(List<ItemStack> orderable, List<ItemStack> unpatterned) {
+        public boolean isEmpty() {
+            return orderable.isEmpty() && unpatterned.isEmpty();
+        }
     }
 
     /**
      * Terminal pre-check + chat feedback + enqueue + open the first AE2 amount
      * screen. The single place that decides whether an order chain can start,
-     * so every gadget reports the same situations the same way.
+     * so every gadget reports the same situations the same way. Unpatterned
+     * shortages are always listed in chat — never dropped silently.
      *
      * @return true if the chain was started (callers should cancel their action)
      */
-    public static boolean startOrderChain(ServerPlayer player, List<ItemStack> toOrder) {
+    public static boolean startOrderChain(ServerPlayer player, ShortageReport report) {
+        List<ItemStack> toOrder = report.orderable();
+        if (report.isEmpty()) {
+            Diagnostics.log("audit: no shortage at all, action proceeds normally");
+            return false;
+        }
+
+        // Shortages without patterns can't be auto-ordered — always tell the
+        // player which ones and how many are missing.
+        if (!report.unpatterned().isEmpty()) {
+            player.sendSystemMessage(Component.translatable(
+                    toOrder.isEmpty() ? "me_building_gadgets.messages.no_pattern_only"
+                            : "me_building_gadgets.messages.no_pattern_extra",
+                    report.unpatterned().size(), formatShortageList(report.unpatterned())));
+        }
+
         if (toOrder.isEmpty()) {
-            Diagnostics.log("audit: no orderable shortage, action proceeds normally");
+            Diagnostics.log("audit: every shortage lacks a pattern, cannot place orders");
             return false;
         }
 
@@ -626,6 +649,20 @@ public class AEHelper {
         craftQueue.put(player.getUUID(), new ArrayList<>(toOrder));
         openNextCraft(player);
         return true;
+    }
+
+    /** "Stone×64, Dirt×10" style listing (hover names resolve client-side). */
+    private static Component formatShortageList(List<ItemStack> stacks) {
+        MutableComponent list = Component.empty();
+        int shown = Math.min(stacks.size(), 5);
+        for (int i = 0; i < shown; i++) {
+            if (i > 0) list.append(Component.literal(", "));
+            ItemStack stack = stacks.get(i);
+            list.append(stack.getHoverName());
+            list.append(Component.literal("×" + stack.getCount()));
+        }
+        if (stacks.size() > shown) list.append(Component.literal(", …"));
+        return list;
     }
 
     /** Count how many of the given item the AE network currently holds. */

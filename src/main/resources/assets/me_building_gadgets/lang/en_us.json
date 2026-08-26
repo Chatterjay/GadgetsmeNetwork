@@ -8,6 +8,8 @@
   "me_building_gadgets.messages.no_terminal": "§c[GadgetsME] Missing %s item(s) with patterns, but no wireless terminal in inventory to place the order.",
   "me_building_gadgets.messages.chain_stopped_terminal": "§c[GadgetsME] No wireless terminal found",
   "me_building_gadgets.messages.shortage_queued": "§7[GadgetsME] Missing %s item(s). Please confirm the order one by one.",
+  "me_building_gadgets.messages.no_pattern_only": "§c[GadgetsME] %s shortage type(s) have no patterns — cannot order: %s",
+  "me_building_gadgets.messages.no_pattern_extra": "§e[GadgetsME] Another %s shortage type(s) lack patterns and cannot be auto-ordered: %s",
   "item.me_building_gadgets.ae2_gadget_copy_paste": "ME Copy-Paste Gadget",
   "item.me_building_gadgets.me_building_gadget": "ME Building Gadget",
   "item.me_building_gadgets.me_exchanging_gadget": "ME Exchanging Gadget"
