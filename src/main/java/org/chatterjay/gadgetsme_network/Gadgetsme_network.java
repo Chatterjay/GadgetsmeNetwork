@@ -21,6 +21,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.chatterjay.gadgetsme_network.ae.AEHelper;
 import org.chatterjay.gadgetsme_network.client.AEClientCache;
 import org.chatterjay.gadgetsme_network.items.AEGadgetCopyPaste;
+import org.chatterjay.gadgetsme_network.items.MEBuildingGadget;
+import org.chatterjay.gadgetsme_network.items.MEExchangerGadget;
 import org.chatterjay.gadgetsme_network.network.AECountRequestPayload;
 import org.chatterjay.gadgetsme_network.network.AECountResponsePayload;
 import org.chatterjay.gadgetsme_network.network.OpenCraftAmountListPayload;
@@ -34,6 +36,8 @@ public class Gadgetsme_network {
 
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, MODID);
     private static final DeferredHolder<Item, AEGadgetCopyPaste> AE_GADGET = ITEMS.register("ae2_gadget_copy_paste", AEGadgetCopyPaste::new);
+    private static final DeferredHolder<Item, MEBuildingGadget> ME_BUILDING_GADGET = ITEMS.register("me_building_gadget", MEBuildingGadget::new);
+    private static final DeferredHolder<Item, MEExchangerGadget> ME_EXCHANGING_GADGET = ITEMS.register("me_exchanging_gadget", MEExchangerGadget::new);
 
     public Gadgetsme_network(IEventBus modEventBus, ModContainer modContainer) {
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -45,21 +49,27 @@ public class Gadgetsme_network {
     }
 
     private void setup(FMLCommonSetupEvent event) {
-        // Register with AE2 so the gadget can be linked via a Wireless Access Point GUI
-        event.enqueueWork(() -> GridLinkables.register(AE_GADGET.get(), AEGadgetCopyPaste.LINKABLE_HANDLER));
+        // Register with AE2 so the gadgets can be linked via a Wireless Access Point GUI
+        event.enqueueWork(() -> {
+            GridLinkables.register(AE_GADGET.get(), AEHelper.LINKABLE_HANDLER);
+            GridLinkables.register(ME_BUILDING_GADGET.get(), AEHelper.LINKABLE_HANDLER);
+            GridLinkables.register(ME_EXCHANGING_GADGET.get(), AEHelper.LINKABLE_HANDLER);
+        });
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         var tabKey = com.direwolf20.buildinggadgets2.setup.ModSetup.TAB_BUILDINGGADGETS2.getKey();
         if (tabKey.equals(event.getTabKey())) {
             event.accept(AE_GADGET.get());
+            event.accept(ME_BUILDING_GADGET.get());
+            event.accept(ME_EXCHANGING_GADGET.get());
         }
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerItem(Capabilities.EnergyStorage.ITEM,
                 (itemStack, context) -> new EnergyStorageItemstack(((BaseGadget) itemStack.getItem()).getEnergyMax(), itemStack),
-                AE_GADGET.get());
+                AE_GADGET.get(), ME_BUILDING_GADGET.get(), ME_EXCHANGING_GADGET.get());
     }
 
     private void registerPayloads(final RegisterPayloadHandlersEvent event) {

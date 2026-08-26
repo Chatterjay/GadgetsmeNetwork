@@ -1,6 +1,14 @@
-# GadgetsME Network
+# ME Building Gadgets（GadgetsME Network）
 
-一个 NeoForge 1.21.1 模组，将 **Building Gadgets 2** 与 **Applied Energistics 2** 集成，在材料列表界面添加"从AE下单"功能。
+一个 NeoForge 1.21.1 模组，将 **Building Gadgets 2** 与 **Applied Energistics 2** 集成：新增三款"ME 小帮手"，缺料时可直接从 AE 网络下单。
+
+## 新增物品
+
+- **ME复制粘贴小帮手** — 复制粘贴模板，缺料时可自动下单
+- **ME建筑小帮手** — 原版建筑小帮手 + AE 集成
+- **ME更替小帮手** — 原版更替小帮手 + AE 集成
+
+三款小帮手的统一能力：绑定到 AE 网络后，使用时若材料不足但有样板、且身上携带无线终端，会直接链式拉起 AE2 的下单界面，逐个确认即可补齐材料。
 
 ## 功能
 

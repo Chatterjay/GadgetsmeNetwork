@@ -8,5 +8,7 @@
   "gadgetsme_network.messages.no_terminal": "§c[GadgetsME] %s material type(s) short and craftable, but no wireless terminal on you — cannot place orders",
   "gadgetsme_network.messages.chain_stopped_terminal": "§c[GadgetsME] No wireless terminal found — ordering stopped",
   "gadgetsme_network.messages.shortage_queued": "§7[GadgetsME] %s material type(s) missing — confirm the AE2 order screens one by one (closing a screen skips that item)",
-  "item.gadgetsme_network.ae2_gadget_copy_paste": "ME Gadget Copy/Paste"
+  "item.gadgetsme_network.ae2_gadget_copy_paste": "ME Gadget Copy/Paste",
+  "item.gadgetsme_network.me_building_gadget": "ME Building Gadget",
+  "item.gadgetsme_network.me_exchanging_gadget": "ME Exchanging Gadget"
 }

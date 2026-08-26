@@ -1,10 +1,10 @@
 package org.chatterjay.gadgetsme_network.ae;
 
 import appeng.api.config.Actionable;
+import appeng.api.features.IGridLinkableHandler;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.IInWorldGridNodeHost;
-import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.networking.crafting.ICraftingService;
@@ -32,9 +32,12 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -58,6 +61,28 @@ import java.util.UUID;
 public class AEHelper {
     /** Missing materials waiting to be shown in AE2's amount screen, one after another. */
     private static final Map<UUID, List<ItemStack>> craftQueue = new HashMap<>();
+
+    /**
+     * Shared AE2 link handler for all of the mod's gadgets: a wireless access
+     * point (or any linking GUI) stores its position on the gadget, which the
+     * audit/lookup helpers below use to reach the grid.
+     */
+    public static final IGridLinkableHandler LINKABLE_HANDLER = new IGridLinkableHandler() {
+        @Override
+        public boolean canLink(ItemStack stack) {
+            return stack.getItem() instanceof BaseGadget;
+        }
+
+        @Override
+        public void link(ItemStack stack, GlobalPos pos) {
+            GadgetNBT.setBoundPos(stack, pos);
+        }
+
+        @Override
+        public void unlink(ItemStack stack) {
+            GadgetNBT.clearBoundPos(stack);
+        }
+    };
 
     // Flags to distinguish menu lifecycle transitions
     private static final Set<UUID> confirmingPlayers = new HashSet<>();
@@ -421,7 +446,8 @@ public class AEHelper {
     }
 
     // ------------------------------------------------------------------------
-    // Paste-time audit: check bound container / AE network for missing materials
+    // Pre-action audit: check bound container / AE network for missing materials
+    // Shared by every gadget of this mod (copy-paste, building, exchanging).
     // ------------------------------------------------------------------------
 
     /**
@@ -450,10 +476,85 @@ public class AEHelper {
         }
 
         Map<ItemStackKey, Integer> required = StatePos.getItemList(statePosList);
-        ICraftingService craftingService = grid.getCraftingService();
-        Diagnostics.log("audit: template {} requires {} item type(s)", templateUUID, required.size());
-        List<ItemStack> toOrder = new ArrayList<>();
+        List<ItemStack> toOrder = computeOrderShortages(player, gadget, grid, required);
+        return startOrderChain(player, toOrder);
+    }
 
+    /**
+     * Audit a building/exchanging gadget's pending action: collect what the
+     * currently selected mode is about to place (anchor-aware), subtract
+     * available stock and queue any craftable shortages into AE2's own
+     * amount screens, chained like the copy-paste gadget.
+     *
+     * @return true if the order chain was started (the action should be cancelled this click)
+     */
+    public static boolean auditBeforeAction(ServerPlayer player, ItemStack gadget) {
+        ServerLevel level = player.serverLevel();
+        IGrid grid = getGridFromGadget(gadget, level);
+        if (grid == null) {
+            Diagnostics.log("audit-action: no grid from gadget, skipping audit");
+            return false;
+        }
+
+        BlockState setState = GadgetNBT.getGadgetBlockState(gadget);
+        if (setState.isAir()) {
+            Diagnostics.log("audit-action: gadget has no block selected, skipping audit");
+            return false;
+        }
+
+        BlockHitResult lookingAt = VectorHelper.getLookingAt(player, gadget);
+        BlockPos anchorPos = GadgetNBT.getAnchorPos(gadget);
+        BlockPos start = anchorPos.equals(GadgetNBT.nullPos) ? lookingAt.getBlockPos() : anchorPos;
+
+        ArrayList<StatePos> pendingList = GadgetNBT.getMode(gadget).collect(lookingAt.getDirection(), player, start, setState);
+        if (pendingList.isEmpty()) {
+            Diagnostics.log("audit-action: mode collected nothing, skipping audit");
+            return false;
+        }
+
+        Map<ItemStackKey, Integer> required = StatePos.getItemList(pendingList);
+        Diagnostics.log("audit-action: mode {} would use {} block position(s)",
+                GadgetNBT.getMode(gadget).getId(), pendingList.size());
+
+        List<ItemStack> toOrder = computeOrderShortages(player, gadget, grid, required);
+        return startOrderChain(player, toOrder);
+    }
+
+    /**
+     * Shared right-click intercept for the building/exchanging gadgets:
+     * mirrors BaseGadget.use's guard (aiming at air without an anchor performs
+     * no action) before running the shortage audit.
+     *
+     * @return true if an order chain was started
+     */
+    public static boolean tryStartBuildOrderChain(ServerPlayer player, Level level, ItemStack gadget) {
+        if (!isBoundToAEGrid(gadget, level)) return false;
+        if (GadgetNBT.getGadgetBlockState(gadget).isAir()) return false;
+
+        BlockHitResult lookingAt = VectorHelper.getLookingAt(player, gadget);
+        if (level.getBlockState(lookingAt.getBlockPos()).isAir()
+                && GadgetNBT.getAnchorPos(gadget).equals(GadgetNBT.nullPos)) {
+            Diagnostics.log("use-audit: aiming at air without anchor, nothing would be built");
+            return false;
+        }
+        return auditBeforeAction(player, gadget);
+    }
+
+    /**
+     * Per-item availability breakdown shared by all audits. Required amounts are
+     * checked against, in order: the player's inventory, the bound container, the
+     * AE network itself (BG2 pulls from it too), and crafting jobs already in flight.
+     * Every remaining shortage that has a pattern becomes an orderable stack.
+     */
+    public static List<ItemStack> computeOrderShortages(ServerPlayer player, ItemStack gadget, IGrid grid,
+                                                        Map<ItemStackKey, Integer> required) {
+        List<ItemStack> toOrder = new ArrayList<>();
+        if (player.isCreative()) {
+            Diagnostics.log("audit: creative player, materials are free — nothing to order");
+            return toOrder;
+        }
+
+        ICraftingService craftingService = grid.getCraftingService();
         for (Map.Entry<ItemStackKey, Integer> entry : required.entrySet()) {
             ItemStack proto = entry.getKey().getStack();
             if (proto.isEmpty()) continue;
@@ -486,14 +587,24 @@ public class AEHelper {
             shortage.setCount(needed);
             toOrder.add(shortage);
         }
+        return toOrder;
+    }
 
+    /**
+     * Terminal pre-check + chat feedback + enqueue + open the first AE2 amount
+     * screen. The single place that decides whether an order chain can start,
+     * so every gadget reports the same situations the same way.
+     *
+     * @return true if the chain was started (callers should cancel their action)
+     */
+    public static boolean startOrderChain(ServerPlayer player, List<ItemStack> toOrder) {
         if (toOrder.isEmpty()) {
-            Diagnostics.log("audit: no orderable shortage, paste proceeds normally");
+            Diagnostics.log("audit: no orderable shortage, action proceeds normally");
             return false;
         }
 
         // Ordering needs a wireless terminal to host AE2's amount screens —
-        // without one, say so explicitly and let the normal paste proceed.
+        // without one, say so explicitly and let the normal action proceed.
         if (findTerminalLocator(player) == null) {
             Diagnostics.log("audit: {} shortage(s) but no wireless terminal on player, cannot order", toOrder.size());
             player.sendSystemMessage(Component.translatable(
@@ -510,8 +621,7 @@ public class AEHelper {
     }
 
     /** Count how many of the given item the AE network currently holds. */
-    private static long countOnNetwork(IGrid grid, ServerPlayer player, ItemStack proto) {
-        AEItemKey key = AEItemKey.of(proto);
+    private static long countOnNetwork(IGrid grid, ServerPlayer player, ItemStack proto) {        AEItemKey key = AEItemKey.of(proto);
         if (key == null) return 0;
         MEStorage storage = grid.getStorageService().getInventory();
         return storage.extract(key, Long.MAX_VALUE, Actionable.SIMULATE, IActionSource.ofPlayer(player));
@@ -576,6 +686,24 @@ public class AEHelper {
     // ------------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------------
+
+    /**
+     * Bind the gadget to any AE2 grid node host (controller, cable, access
+     * point, ...), mirroring BG2's bind feedback.
+     *
+     * @return false when the target is not a grid node host — callers should
+     *         fall back to BG2's normal container binding
+     */
+    public static boolean bindToGridHost(Level level, Player player, ItemStack gadget, BlockHitResult lookingAt) {
+        BlockEntity be = level.getBlockEntity(lookingAt.getBlockPos());
+        if (!(be instanceof IInWorldGridNodeHost)) return false;
+        GadgetNBT.setBoundPos(gadget, new GlobalPos(level.dimension(), lookingAt.getBlockPos()));
+        GadgetNBT.setToolValue(gadget, lookingAt.getDirection().ordinal(), GadgetNBT.IntSettings.BIND_DIRECTION.getName());
+        player.displayClientMessage(Component.translatable(
+                "buildinggadgets2.messages.bindsuccess", lookingAt.getBlockPos().toShortString()), true);
+        Diagnostics.log("bind: gadget bound to grid host {} ({})", lookingAt.getBlockPos(), be.getClass().getSimpleName());
+        return true;
+    }
 
     @Nullable
     private static MenuHostLocator findTerminalLocator(ServerPlayer player) {
