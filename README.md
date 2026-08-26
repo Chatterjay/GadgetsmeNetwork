@@ -1,6 +1,8 @@
-# ME Building Gadgets（GadgetsME Network）
+# ME Building Gadgets
 
 一个 NeoForge 1.21.1 模组，将 **Building Gadgets 2** 与 **Applied Energistics 2** 集成：新增三款"ME 小帮手"，缺料时可直接从 AE 网络下单。
+
+> 模组 ID：`me_building_gadgets`（21.1.1 起由 `gadgetsme_network` 更名，旧存档中的旧 ID 物品会失效）
 
 ## 新增物品
 

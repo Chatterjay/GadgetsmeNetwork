@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "org.chatterjay.gadgetsme_network.mixin",
   "compatibilityLevel": "JAVA_21",
-  "refmap": "gadgetsme_network.refmap.json",
+  "refmap": "me_building_gadgets.refmap.json",
   "mixins": [
     "AE2MethodsMixin",
     "CraftAmountMenuMixin",

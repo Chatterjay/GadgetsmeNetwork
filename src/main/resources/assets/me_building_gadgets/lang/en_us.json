@@ -1,0 +1,14 @@
+{
+  "me_building_gadgets.ae_order": "Order from ME",
+  "me_building_gadgets.messages.no_gadget": "§c[GadgetsME] Bound gadget not found!",
+  "me_building_gadgets.messages.no_grid": "§c[GadgetsME] Not connected to an ME network!",
+  "me_building_gadgets.messages.chain_stopped_gadget": "§c[GadgetsME] Bound gadget not found — ordering stopped",
+  "me_building_gadgets.messages.chain_stopped_grid": "§c[GadgetsME] Lost connection to the ME network — ordering stopped",
+  "me_building_gadgets.messages.nothing_to_order": "§7[GadgetsME] Nothing to order — shortages are already stocked, being crafted, or have no patterns",
+  "me_building_gadgets.messages.no_terminal": "§c[GadgetsME] %s material type(s) short and craftable, but no wireless terminal on you — cannot place orders",
+  "me_building_gadgets.messages.chain_stopped_terminal": "§c[GadgetsME] No wireless terminal found — ordering stopped",
+  "me_building_gadgets.messages.shortage_queued": "§7[GadgetsME] %s material type(s) missing — confirm the AE2 order screens one by one (closing a screen skips that item)",
+  "item.me_building_gadgets.ae2_gadget_copy_paste": "ME Gadget Copy/Paste",
+  "item.me_building_gadgets.me_building_gadget": "ME Building Gadget",
+  "item.me_building_gadgets.me_exchanging_gadget": "ME Exchanging Gadget"
+}

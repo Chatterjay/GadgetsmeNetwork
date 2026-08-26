@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 
 @Mod(Gadgetsme_network.MODID)
 public class Gadgetsme_network {
-    public static final String MODID = "gadgetsme_network";
+    public static final String MODID = "me_building_gadgets";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, MODID);

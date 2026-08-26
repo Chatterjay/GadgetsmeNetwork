@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "gadgetsme_network:me_building_gadget"
+        "recipe": "me_building_gadgets:me_building_gadget"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -37,7 +37,7 @@
   ],
   "rewards": {
     "recipes": [
-      "gadgetsme_network:me_building_gadget"
+      "me_building_gadgets:me_building_gadget"
     ]
   }
 }

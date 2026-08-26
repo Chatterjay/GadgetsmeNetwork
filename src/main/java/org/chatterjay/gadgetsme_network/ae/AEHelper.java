@@ -161,14 +161,14 @@ public class AEHelper {
             ItemStack gadget = findGadgetWithBoundPos(serverPlayer);
             if (gadget.isEmpty()) {
                 serverPlayer.sendSystemMessage(
-                        Component.translatable("gadgetsme_network.messages.no_gadget"));
+                        Component.translatable("me_building_gadgets.messages.no_gadget"));
                 return;
             }
 
             IGrid grid = getGridFromGadget(gadget, serverPlayer.serverLevel());
             if (grid == null) {
                 serverPlayer.sendSystemMessage(
-                        Component.translatable("gadgetsme_network.messages.no_grid"));
+                        Component.translatable("me_building_gadgets.messages.no_grid"));
                 return;
             }
 
@@ -192,7 +192,7 @@ public class AEHelper {
             if (gadget.isEmpty()) {
                 Diagnostics.log("order-batch: no bound gadget found, aborting");
                 serverPlayer.sendSystemMessage(
-                        Component.translatable("gadgetsme_network.messages.no_gadget"));
+                        Component.translatable("me_building_gadgets.messages.no_gadget"));
                 return;
             }
 
@@ -200,7 +200,7 @@ public class AEHelper {
             if (grid == null) {
                 Diagnostics.log("order-batch: no grid from gadget, aborting");
                 serverPlayer.sendSystemMessage(
-                        Component.translatable("gadgetsme_network.messages.no_grid"));
+                        Component.translatable("me_building_gadgets.messages.no_grid"));
                 return;
             }
 
@@ -231,7 +231,7 @@ public class AEHelper {
             if (craftableItems.isEmpty()) {
                 Diagnostics.log("order-batch: nothing to queue");
                 serverPlayer.sendSystemMessage(
-                        Component.translatable("gadgetsme_network.messages.nothing_to_order"));
+                        Component.translatable("me_building_gadgets.messages.nothing_to_order"));
                 return;
             }
 
@@ -239,7 +239,7 @@ public class AEHelper {
                 Diagnostics.log("order-batch: {} shortage(s) but no wireless terminal on player, cannot order",
                         craftableItems.size());
                 serverPlayer.sendSystemMessage(Component.translatable(
-                        "gadgetsme_network.messages.no_terminal", craftableItems.size()));
+                        "me_building_gadgets.messages.no_terminal", craftableItems.size()));
                 return;
             }
 
@@ -275,14 +275,14 @@ public class AEHelper {
         if (gadget.isEmpty()) {
             craftQueue.remove(uuid);
             Diagnostics.log("queue: bound gadget vanished, chain aborted ({} type(s) left)", queue.size());
-            player.sendSystemMessage(Component.translatable("gadgetsme_network.messages.chain_stopped_gadget"));
+            player.sendSystemMessage(Component.translatable("me_building_gadgets.messages.chain_stopped_gadget"));
             return;
         }
         IGrid grid = getGridFromGadget(gadget, player.serverLevel());
         if (grid == null) {
             craftQueue.remove(uuid);
             Diagnostics.log("queue: grid unreachable, chain aborted ({} type(s) left)", queue.size());
-            player.sendSystemMessage(Component.translatable("gadgetsme_network.messages.chain_stopped_grid"));
+            player.sendSystemMessage(Component.translatable("me_building_gadgets.messages.chain_stopped_grid"));
             return;
         }
 
@@ -301,7 +301,7 @@ public class AEHelper {
         if (locator == null) {
             craftQueue.remove(uuid);
             Diagnostics.log("queue: no wireless terminal on player, chain aborted ({} type(s) left)", queue.size());
-            player.sendSystemMessage(Component.translatable("gadgetsme_network.messages.chain_stopped_terminal"));
+            player.sendSystemMessage(Component.translatable("me_building_gadgets.messages.chain_stopped_terminal"));
             return;
         }
 
@@ -608,12 +608,12 @@ public class AEHelper {
         if (findTerminalLocator(player) == null) {
             Diagnostics.log("audit: {} shortage(s) but no wireless terminal on player, cannot order", toOrder.size());
             player.sendSystemMessage(Component.translatable(
-                    "gadgetsme_network.messages.no_terminal", toOrder.size()));
+                    "me_building_gadgets.messages.no_terminal", toOrder.size()));
             return false;
         }
 
         // Chain AE2's own amount screens: confirm one item, the next pops up.
-        player.sendSystemMessage(Component.translatable("gadgetsme_network.messages.shortage_queued", toOrder.size()));
+        player.sendSystemMessage(Component.translatable("me_building_gadgets.messages.shortage_queued", toOrder.size()));
         Diagnostics.log("audit: queueing {} item type(s), opening first AE2 amount screen", toOrder.size());
         craftQueue.put(player.getUUID(), new ArrayList<>(toOrder));
         openNextCraft(player);

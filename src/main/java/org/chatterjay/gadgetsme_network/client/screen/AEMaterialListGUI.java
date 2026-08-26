@@ -82,7 +82,7 @@ public class AEMaterialListGUI extends Screen {
         Player player = Minecraft.getInstance().player;
         boolean boundToAE = player != null && AEHelper.isBoundToAEGrid(gadget, Minecraft.getInstance().level);
         this.buttonAESort = Button.builder(
-                Component.translatable("gadgetsme_network.ae_order"),
+                Component.translatable("me_building_gadgets.ae_order"),
                 btn -> onAEOrder()
         ).pos(0, buttonY).size(0, BUTTON_HEIGHT).build();
         this.buttonAESort.visible = boundToAE;

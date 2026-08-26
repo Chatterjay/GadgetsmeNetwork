@@ -2,7 +2,7 @@
 	"credit": "Made with _leng",
 	"parent": "item/generated",
 	"textures": {
-		"layer0": "gadgetsme_network:item/ae2_gadget_copy_paste"
+		"layer0": "me_building_gadgets:item/ae2_gadget_copy_paste"
 	},
 	"display": {
 		"thirdperson_righthand": {
