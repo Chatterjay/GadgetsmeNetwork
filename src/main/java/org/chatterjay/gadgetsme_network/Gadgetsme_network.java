@@ -24,6 +24,9 @@ import org.chatterjay.gadgetsme_network.items.MEBuildingGadget;
 import org.chatterjay.gadgetsme_network.items.MEExchangerGadget;
 import org.chatterjay.gadgetsme_network.network.AECountRequestPayload;
 import org.chatterjay.gadgetsme_network.network.AECountResponsePayload;
+import org.chatterjay.gadgetsme_network.network.MaterialReplaceRequestPayload;
+import org.chatterjay.gadgetsme_network.network.MaterialReplaceResponsePayload;
+import org.chatterjay.gadgetsme_network.network.MaterialReplacementHandler;
 import org.chatterjay.gadgetsme_network.network.OpenCraftAmountListPayload;
 import org.chatterjay.gadgetsme_network.network.OpenCraftAmountPayload;
 import org.slf4j.Logger;
@@ -92,11 +95,26 @@ public class Gadgetsme_network {
                 AEHelper::handleCountRequest
         );
 
+        registrar.playToServer(
+                MaterialReplaceRequestPayload.TYPE,
+                MaterialReplaceRequestPayload.STREAM_CODEC,
+                MaterialReplacementHandler::handle
+        );
+
         registrar.playToClient(
                 AECountResponsePayload.TYPE,
                 AECountResponsePayload.STREAM_CODEC,
                 (payload, context) -> context.enqueueWork(() ->
                         AEClientCache.updateCounts(payload.counts()))
+        );
+
+        registrar.playToClient(
+                MaterialReplaceResponsePayload.TYPE,
+                MaterialReplaceResponsePayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> {
+                    org.chatterjay.gadgetsme_network.client.screen.AEMaterialListGUI
+                            .handleMaterialReplaceResponsePacket(payload);
+                })
         );
     }
 }

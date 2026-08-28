@@ -102,6 +102,12 @@ public class ScrollingMaterialListCopy extends EntryList<ScrollingMaterialListCo
         itemCountsMap = null;
     }
 
+    @Override
+    public void setSelected(Entry entry) {
+        super.setSelected(entry);
+        gui.onMaterialSelectionChanged();
+    }
+
     public static class Entry extends ObjectSelectionList.Entry<ScrollingMaterialListCopy.Entry> {
 
         private final ScrollingMaterialListCopy parent;

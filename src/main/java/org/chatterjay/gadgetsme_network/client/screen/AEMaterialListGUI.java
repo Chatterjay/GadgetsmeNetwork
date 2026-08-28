@@ -14,12 +14,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.chatterjay.gadgetsme_network.ae.AEHelper;
 import org.chatterjay.gadgetsme_network.client.AEClientCache;
 import org.chatterjay.gadgetsme_network.network.AECountRequestPayload;
+import org.chatterjay.gadgetsme_network.network.MaterialReplaceRequestPayload;
+import org.chatterjay.gadgetsme_network.network.MaterialReplaceResponsePayload;
 import org.chatterjay.gadgetsme_network.network.OpenCraftAmountListPayload;
+import com.direwolf20.buildinggadgets2.util.GadgetNBT;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +50,8 @@ public class AEMaterialListGUI extends Screen {
     private Button buttonClose;
     private Button buttonSortingModes;
     private Button buttonAESort;
+    private Button buttonReplace;
+    private boolean replacementPending;
 
     public AEMaterialListGUI(ItemStack itemStack) {
         super(Component.translatable("buildinggadgets2.screen.componentslist"));
@@ -57,7 +63,7 @@ public class AEMaterialListGUI extends Screen {
         this.backgroundX = getXForAlignedCenter(0, width, BACKGROUND_WIDTH);
         this.backgroundY = getYForAlignedCenter(0, height, BACKGROUND_HEIGHT);
 
-        this.scrollingList = new ScrollingMaterialListCopy(this, getWindowLeftX(), getWindowTopY() + 16, getWindowWidth(), getWindowHeight() - 16 - 32, gadget);
+        this.scrollingList = new ScrollingMaterialListCopy(this, getWindowLeftX(), getWindowTopY() + 24, getWindowWidth(), getWindowHeight() - 24 - 32, gadget);
         this.setFocused(scrollingList);
         this.addRenderableWidget(scrollingList);
 
@@ -84,9 +90,16 @@ public class AEMaterialListGUI extends Screen {
         ).pos(0, buttonY).size(0, BUTTON_HEIGHT).build();
         this.buttonAESort.visible = boundToAE;
 
+        this.buttonReplace = Button.builder(
+                Component.translatable("me_building_gadgets.replace_material"),
+                btn -> onReplaceMaterial()
+        ).pos(getWindowRightX() - 92, getWindowTopY() + 2).size(88, BUTTON_HEIGHT).build();
+        this.buttonReplace.active = scrollingList.getSelected() != null;
+
         this.addRenderableWidget(buttonSortingModes);
         this.addRenderableWidget(buttonAESort);
         this.addRenderableWidget(buttonClose);
+        this.addRenderableWidget(buttonReplace);
 
         this.calculateButtonsWidthAndX();
 
@@ -116,7 +129,7 @@ public class AEMaterialListGUI extends Screen {
     }
 
     private void calculateButtonsWidthAndX() {
-        int amountButtons = (int) children().stream().filter(e -> e instanceof Button).count();
+        int amountButtons = (int) children().stream().filter(e -> e instanceof Button btn && btn != buttonReplace).count();
         int amountMargins = amountButtons - 1;
         int totalMarginWidth = amountMargins * BUTTONS_PADDING;
         int usableWidth = getWindowWidth();
@@ -124,11 +137,93 @@ public class AEMaterialListGUI extends Screen {
         int nextX = getWindowLeftX();
 
         for (GuiEventListener widget : children()) {
-            if (widget instanceof Button btn) {
+            if (widget instanceof Button btn && btn != buttonReplace) {
                 btn.setWidth(buttonWidth);
                 btn.setX(nextX);
                 nextX += buttonWidth + BUTTONS_PADDING;
             }
+        }
+
+        buttonReplace.setX(getWindowRightX() - buttonReplace.getWidth());
+        buttonReplace.setY(getWindowTopY() + 2);
+    }
+
+    private void onReplaceMaterial() {
+        if (replacementPending) return;
+        ScrollingMaterialListCopy.Entry selected = scrollingList.getSelected();
+        if (selected == null || selected.getStack().isEmpty()) return;
+
+        MaterialSelectionScreens.open(this, selected.getStack(), (inventorySlot, replacement) -> {
+            Player player = Minecraft.getInstance().player;
+            if (player == null || !(replacement.getItem() instanceof BlockItem)) return;
+
+            replacementPending = true;
+            buttonReplace.active = false;
+            Minecraft.getInstance().setScreen(this);
+            PacketDistributor.sendToServer(new MaterialReplaceRequestPayload(
+                    GadgetNBT.getUUID(gadget),
+                    GadgetNBT.getCopyUUID(gadget),
+                    inventorySlot,
+                    selected.getStack().copyWithCount(1),
+                    replacement.copyWithCount(1)
+            ));
+        });
+    }
+
+    public void onMaterialSelectionChanged() {
+        if (buttonReplace != null) {
+            buttonReplace.active = !replacementPending && scrollingList.getSelected() != null;
+        }
+    }
+
+    public static void handleMaterialReplaceResponsePacket(MaterialReplaceResponsePayload payload) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (payload.success()) {
+            var updated = com.direwolf20.buildinggadgets2.common.worlddata.BG2Data.statePosListFromNBTMapArray(payload.data());
+            com.direwolf20.buildinggadgets2.common.worlddata.BG2DataClient.updateLookupFromNBT(
+                    payload.gadgetUUID(), payload.copyUUID(), updated);
+            updateClientGadgetCopyUUID(minecraft, payload.gadgetUUID(), payload.copyUUID());
+        }
+
+        if (minecraft.screen instanceof AEMaterialListGUI gui) {
+            gui.handleMaterialReplaceResponse(payload);
+        }
+    }
+
+    private static void updateClientGadgetCopyUUID(Minecraft minecraft, java.util.UUID gadgetUUID, java.util.UUID copyUUID) {
+        Player player = minecraft.player;
+        if (player == null) return;
+
+        ItemStack[] held = {player.getMainHandItem(), player.getOffhandItem()};
+        for (ItemStack stack : held) {
+            if (stack.getItem() instanceof org.chatterjay.gadgetsme_network.items.AEGadgetCopyPaste
+                    && GadgetNBT.getUUID(stack).equals(gadgetUUID)) {
+                GadgetNBT.setCopyUUID(stack, copyUUID);
+            }
+        }
+        if (minecraft.screen instanceof AEMaterialListGUI gui
+                && GadgetNBT.getUUID(gui.gadget).equals(gadgetUUID)) {
+            GadgetNBT.setCopyUUID(gui.gadget, copyUUID);
+        }
+    }
+
+    public void handleMaterialReplaceResponse(MaterialReplaceResponsePayload payload) {
+        if (!GadgetNBT.getUUID(gadget).equals(payload.gadgetUUID())) return;
+        replacementPending = false;
+
+        if (payload.success()) {
+            scrollingList.setTemplateItem(gadget);
+            AEClientCache.clear();
+            queryAECounts();
+        } else {
+            playerMessage(Component.translatable("me_building_gadgets.replace_material.invalid"));
+        }
+        onMaterialSelectionChanged();
+    }
+
+    private void playerMessage(Component message) {
+        if (Minecraft.getInstance().player != null) {
+            Minecraft.getInstance().player.displayClientMessage(message, true);
         }
     }
 
